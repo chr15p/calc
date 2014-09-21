@@ -155,14 +155,13 @@ char * strip(char * string){
 
 
 int main(int argc, char* argv[]){
-	//char *input="1.0+2.3*(17+3)";
     char *curr;
 	char *endptr;
 	double value;
-	//int operator;
+	int operator;
 	int i;
 	int j;
-	int len;
+//	int len;
 	int state=VALUE_STATE;
 	Stackframe *valuestack = NULL;
 	Stackframe *opstack = NULL;
@@ -180,28 +179,27 @@ int main(int argc, char* argv[]){
 			if(state==VALUE_STATE){
 				value = strtod(curr,&endptr);	//try and read a number
 				if(curr == endptr){	
-					fprintf(stderr,"failed to read value\n");
+					fprintf(stderr,"failed to read value at %s\n",curr);
 					exit(1);
 				}
 				valuestack = pushtostack(valuestack,&value,sizeof(double));
 				curr = endptr;
 				state=OP_STATE;
 			}else if(state==OP_STATE){
-				//operator = -1;
+				operator = -1;
 				i = 0;
 				while(operators[i].symbol != NULL){
-					len = strlen(operators[i].symbol);
-					if(strncmp(operators[i].symbol,curr,len) == 0){
-						//operator = operators[i].number;
-						//printf("operator=%c %d\n",*endptr,operator);
-						//opstack = pushtostack(opstack,&operator,sizeof(int));
-						opstack = evalAndPush(&opstack, &valuestack, i);
-						//opstack = pushtostack(opstack,&i,sizeof(int));
-						//curr = endptr + len;
-						curr+=len;
+					if(strncmp(operators[i].symbol,curr,operators[i].symbol_len) == 0){
+						operator = operators[i].number;
+						opstack = evalAndPush(&opstack, &valuestack, operator);
+						curr+=operators[i].symbol_len;
 						break;
 					}
 					i++;
+				}
+				if(operator == -1){
+					fprintf(stderr,"invalid operator at %s\n",curr);
+					exit(1);
 				}
 				state=VALUE_STATE;
 			}else{
