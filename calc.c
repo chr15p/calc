@@ -111,52 +111,35 @@ double evaluateStackframe(Stackframe **opstack,Stackframe **valuestack){
 	double retval;
 	int *operator;
 
-	//printf("evaluateStackframe called %x\n",*opstack);
 	if(*opstack != NULL){
-		//valueptr=(double*)popfromstack(&valuestack);
 		value_one = (double*) popfromstack(valuestack);
 		value_two = (double*) popfromstack(valuestack);
 		operator = (int*) popfromstack(opstack);
-		//printf("popped %f\n",*value_one);
-		//printf("popped %f\n",*value_two);
-		//printf("popped %s\n",operators[*operator].symbol);
 		retval=operators[*operator].function(*value_one,*value_two);
-		//printf("eval ");
 		*valuestack=pushtostack(*valuestack, &retval,sizeof(double));
-		//printf("valuestack = %x\n",*valuestack);
 		return retval;
 	}else{
-		printf("opstack = %x\n",*opstack);
 		return 0;
 	}
 }
 
 #define peekvalue(val) (val ? *((double*)(val)->data): 0)
-//#define peekop() (*((int*)opstack->data))
 #define peekop(op) (op ? *((int*)(op)->data) : 0)
 
 Stackframe* evalAndPush(Stackframe **opstack, Stackframe **valuestack, int value){
 	int prevop;
-	double retval;
 
-	//printf("evalandpush = %x\n",*opstack);
 	if(opstack != NULL){
-		//while(opstack = popfromstack(opstack, (void*) &prevop)){
-		//while(prevop = popfromstack(&opstack)){
-		while(prevop = peekop(*opstack)){
-		//while(prevop = *((int*)(*opstack)->data)){
-			//printf("prevop %d\n",prevop);
+		while((prevop = peekop(*opstack)) != 0){
 			if(operators[prevop].precedence >= operators[value].precedence){
-				retval = evaluateStackframe(opstack,valuestack);
+				evaluateStackframe(opstack,valuestack);
 			}else{
-				//printf("eval1 ");
 				*opstack = pushtostack(*opstack,&prevop,sizeof(int));
 				break;
 			}
 		}
 	}
 
-	//printf("eval2 ");
 	*opstack = pushtostack(*opstack, &value,sizeof(int));
 	return *opstack;
 }
@@ -176,8 +159,7 @@ int main(int argc, char* argv[]){
     char *curr;
 	char *endptr;
 	double value;
-	int prevop;
-	int operator;
+	//int operator;
 	int i;
 	int j;
 	int len;
@@ -185,40 +167,32 @@ int main(int argc, char* argv[]){
 	Stackframe *valuestack = NULL;
 	Stackframe *opstack = NULL;
 
-	double *valueptr;
-	int *opptr;
-
     if(argc==1){
       printf("usage: %s [expression]\n",argv[0]);
       exit(1);
     }
-//printf("%s\n",argv[1]);
 
 	for(j=1; j<argc; j++){
 		curr=argv[j];
 
 		while((*curr) != 0){
 			curr = strip(curr);
-			//printf("%s\n",curr);
 			if(state==VALUE_STATE){
 				value = strtod(curr,&endptr);	//try and read a number
 				if(curr == endptr){	
-					fprintf(stderr,"failed to read value\n", state);
+					fprintf(stderr,"failed to read value\n");
 					exit(1);
 				}
 				valuestack = pushtostack(valuestack,&value,sizeof(double));
-				//valueptr=(double*)popfromstack(&valuestack);
-				//printf("return: %f\n",*valueptr);
-				//exit(0);
 				curr = endptr;
 				state=OP_STATE;
 			}else if(state==OP_STATE){
-				operator = -1;
+				//operator = -1;
 				i = 0;
 				while(operators[i].symbol != NULL){
 					len = strlen(operators[i].symbol);
 					if(strncmp(operators[i].symbol,curr,len) == 0){
-						operator = operators[i].number;
+						//operator = operators[i].number;
 						//printf("operator=%c %d\n",*endptr,operator);
 						//opstack = pushtostack(opstack,&operator,sizeof(int));
 						opstack = evalAndPush(&opstack, &valuestack, i);
