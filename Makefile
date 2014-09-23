@@ -11,7 +11,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 CC=gcc
-CFLAGS=-Wall -g 
+CFLAGS=-Wall -lm -g
 EXE=calc 
 SRC=calc.c
 

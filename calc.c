@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define VALUE_STATE 0
 #define OP_STATE 1
@@ -45,6 +46,10 @@ double mod(double x, double y){
 	return (int)y%(int)x;
 }
 
+double power(double x,double y){
+	printf("power %f^%f=%f\n",y,x,pow(y,x));
+	return pow(y,x);
+}
 
 Operator operators[] = {
 	{0, 1, 1, "+", &add},
@@ -52,6 +57,7 @@ Operator operators[] = {
 	{2, 2, 1, "*", &multiply},
 	{3, 2, 1, "/", &divide},
 	{4, 2, 1, "%", &mod},
+	{5, 9, 1, "^", &power},
 	{0, 0, 0, NULL,NULL}
 };
 
