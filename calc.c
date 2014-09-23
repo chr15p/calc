@@ -15,6 +15,7 @@ typedef struct _stackframe {
 typedef struct _operator {
 	int number;
 	int precedence;
+	int args;
 	int symbol_len;
     char * symbol;
     double (*function)(double,double);
@@ -51,14 +52,29 @@ double power(double x,double y){
 	return pow(y,x);
 }
 
+
+double factorial(double x, double y){
+	int i;
+	double tot=1;
+
+	for(i=2;i<=x;i++){
+		tot*=i;
+	}
+
+	//printf("power %f^%f=%f\n",y,x,pow(y,x));
+	return tot;
+}
+
+
 Operator operators[] = {
-	{0, 1, 1, "+", &add},
-	{1, 1, 1, "-", &subtract},
-	{2, 2, 1, "*", &multiply},
-	{3, 2, 1, "/", &divide},
-	{4, 2, 1, "%", &mod},
-	{5, 9, 1, "^", &power},
-	{0, 0, 0, NULL,NULL}
+	{0, 1, 2, 1, "+", &add},
+	{1, 1, 2, 1, "-", &subtract},
+	{2, 2, 2, 1, "*", &multiply},
+	{3, 2, 2, 1, "/", &divide},
+	{4, 2, 2, 1, "%", &mod},
+	{5, 9, 2, 1, "^", &power},
+	{6, 10, 1, 1, "!", &factorial},
+	{0, 0, 0, 0, NULL,NULL}
 };
 
 
@@ -118,16 +134,25 @@ double evaluateStackframe(Stackframe **opstack,Stackframe **valuestack){
 	int *operator;
 
 	if(*opstack != NULL){
-		value_one = (double*) popfromstack(valuestack);
-		value_two = (double*) popfromstack(valuestack);
 		operator = (int*) popfromstack(opstack);
-		retval=operators[*operator].function(*value_one,*value_two);
-		*valuestack=pushtostack(*valuestack, &retval,sizeof(double));
-		return retval;
+		if(operators[*operator].args == 2 ){
+			value_one = (double*) popfromstack(valuestack);
+			value_two = (double*) popfromstack(valuestack);
+		}else if(operators[*operator].args == 1 ){
+			value_one = (double*) popfromstack(valuestack);
+			value_two = value_one;
+		}else{
+			fprintf(stderr,"strange number of args required. This is a bug\n");
+			exit(1);
+		}
+		retval = operators[*operator].function(*value_one,*value_two);
+		*valuestack = pushtostack(*valuestack, &retval,sizeof(double));
 	}else{
-		return 0;
+		retval=0;
 	}
+	return retval;
 }
+
 
 #define peekvalue(val) (val ? *((double*)(val)->data): 0)
 #define peekop(op) (op ? *((int*)(op)->data) : 0)
